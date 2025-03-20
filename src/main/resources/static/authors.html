@@ -1,0 +1,147 @@
+<DOCTYPE html>
+<html Lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport">
+<title>Authors</title>
+</head>
+<body>
+<h1>Authors List</h1>
+<ul id="AuthorList"></ul>
+<label for="authorId">Enter author Id :</label>
+<input type="number" id="authorId">
+<button onclick="fetchAuthorById()">Search Author</button>
+<h3>Author details</h3>
+<p id="authorDetails"></p>
+<h3>Add a new Author</h3>
+<label for="name">Name: </label>
+<input type="text" id="name">	
+<label for="country">Country: </label>
+<input type="text" id="country">
+<button onclick="addAuthor()">Add Author</button>
+<p id = "addAuthor"></p>
+<h3>Deleting Author</h3>
+<label for="authorId">Enter Author Id :</label>
+<input type="number" id="deleteAuthorId">
+<button onclick="deleteAuthor()">Delete Author</button>
+<p id="deleteMessage"></p>
+<h3>Update Author</h3>
+<label for="updateAuthorId">Enter Author ID to update: </label>
+<input type="number" id="updateAuthorId"><br>
+<label for="updateName">Name: </label>
+<input type="text" id="updateName"><br>
+<label for="updateCountry">Country: </label>
+<input type="text" id="updateCountry"><br>
+<button onclick="updateAuthor()">Update Author</button>
+<p id="updateMessage"></p>
+<script>
+		fetch('/api/authors')
+		.then(response => response.json())
+		.then(data => {
+			const list = document.getElementById('AuthorList');
+			data.forEach(author => {
+				const li = document.createElement('li');
+				li.textContent = `${author.id} : ${author.name} from ${author.country} `;
+				list.appendChild(li);
+			})
+		})
+	    .catch(error => console.error('Error fetching author data', error));
+
+		function fetchAuthorById() {
+			const authorId = document.getElementById("authorId").value;
+			if(!authorId){
+				alert("please enter some author id");
+				return;
+			}
+			fetch(`/api/authors/${authorId}`)
+				.then(response => {
+					if(!response.ok) {
+						throw new Error("author not found");
+					}
+					return response.json();
+				})
+				.then(author => {
+					document.getElementById("authorDetails").textContent =
+						`Author id: ${author.id} || Name: ${author.name} || Country: ${author.country}`;
+				})
+				.catch(error => {
+					document.getElementById("authorDetails").textContent = "Author not found";
+				})
+		}
+
+		function addAuthor(){
+	        const name = document.getElementById("name").value;
+	        const country = document.getElementById("country").value;
+	        console.log("Adding author:", { name, country });
+	        fetch('/api/authors', {
+	            method: 'POST',
+	            headers: {
+	                'Content-Type': 'application/json'
+	            },
+	            body: JSON.stringify({ name, country })
+	        })
+	        .then(response => {
+	            if (!response.ok) {
+	                throw new Error('Failed to add author');
+	            }
+	            return response.text();
+	        })
+	        .then(author => {
+	            console.log("Author added:", author);
+	            alert(`Author added successfully !!`);
+	        })
+	        .catch(error => {
+	        	document.getElementById("addAuthor").textContent = "Error adding author";
+	        });
+	    }
+		function deleteAuthor() {
+	        const deleteAuthorId = document.getElementById("deleteAuthorId").value;
+			if(!deleteAuthorId){
+				alert("Please enter Author Id to delete");
+				return;
+			}
+	        fetch(`/api/authors/${deleteAuthorId}`, {
+	            method: 'DELETE'
+	        })
+	        .then(response => {
+	            if (response.ok) {
+	            	 document.getElementById("deleteMessage").textContent = "author deleted successfully";
+	            }else{
+	            	 document.getElementById("deleteMessage").textContent = "author not found";
+	            }
+	        })
+	        .catch(error => {
+	            document.getElementById("deleteMessage").textContent = "Error deleting author";
+	        });
+	    }
+
+		function updateAuthor() {
+	        const updateAuthorId = document.getElementById("updateAuthorId").value;
+	        const name = document.getElementById("updateName").value;
+	        const country = document.getElementById("updateCountry").value;
+
+	        if (!updateAuthorId || !name || !country ) {
+	            alert("Please fill in all fields");
+	            return;
+	        }
+	        fetch(`/api/authors/${updateAuthorId}`, {
+	            method: 'PUT',
+	            headers: {
+	                'Content-Type': 'application/json'
+	            },
+	            body: JSON.stringify({ name, country})
+	        })
+	        .then(response => {
+	        	if (response.ok) {
+	            	 document.getElementById("updateMessage").textContent = "Author updated successfully";
+	            }else{
+	            	 document.getElementById("updateMessage").textContent = "Author not found";
+	            }
+	        })
+	        .catch(error => {
+	            document.getElementById("updateMessage").textContent = "Error updating author";
+	        });
+	    }
+
+
+</script>

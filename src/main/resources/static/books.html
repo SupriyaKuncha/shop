@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Books List</title>
+</head>
+<body>
+ 
+    <h1>Books available</h1>
+    <ul id="booklist"></ul> 
+
+    <!-- Book ID setup -->
+    <label for="bookId">Enter book ID: </label>
+    <input type="number" id="bookId">
+    <button onclick="fetchBookById()">Search Book</button>
+
+ <h2>Book details:</h2>
+    <p id="bookDetails"></p>  
+ 
+    <!-- Add new book setup -->
+    <h2>Add a new book</h2>
+    <label for="title">Title: </label>
+    <input type="text" id="title"><br>
+    
+    
+    <label for="price">Price: </label>
+    <input type="number" id="price"><br>
+    
+    <label for="authorId">Author ID: </label>
+    <input type="number" id="authorId"><br>
+    
+    <button onclick="addBook()">Add Book</button>
+    
+   
+    <p id = "addBookResponse"></p>
+    <h2>All Books: </h2>
+    <ul id="booksList"></ul>
+    
+    <!-- Delete -->
+    <h2>Delete Book: </h2>
+    <lable for = "deleteId">Enter Book Id to delete: </lable>
+    <input type="number" id="deleteBookId">
+    <button onclick = "deleteBook()">Delete Book</button>
+    <p id = "deleteMessage"></p>
+    
+    <!-- Update book setup -->
+    
+    <h2>Update Book:</h2>
+    <label for="updateBookId">Enter Book ID to update: </label>
+    <input type="number" id="updateBookId"><br>
+    
+    <label for="updateTitle">Title: </label>
+    <input type="text" id="updateTitle"><br>
+    
+    <label for="updatePrice">Price: </label>
+    <input type="number" id="updatePrice"><br>
+    
+    <label for="updateAuthorId">Author ID: </label>
+    <input type="number" id="updateAuthorId"><br>
+    
+    <button onclick="updateBook()">Update Book</button>
+    
+    <p id="updateMessage"></p>
+
+    <script>
+    
+    function addBook(){
+        const title = document.getElementById("title").value;
+        const price = document.getElementById("price").value;
+        const authorId = document.getElementById("authorId").value;
+
+        console.log("Adding book:", { title, price, authorId });
+
+        fetch('/api/books', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title, price, authorId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to add book');
+            }
+            return response.json();
+        })
+        .then(book => {
+            console.log("Book added:", book);
+            alert(`Book added successfully: ${book.title}`);
+            const list = document.getElementById('booksList');
+            const li = document.createElement('li');
+            li.textContent = `${book.title} having price ${book.price} with author id ${book.authorId}.`;
+            list.appendChild(li);
+        })
+        .catch(error => {
+        	document.getElementById("addBookResponse").textContent = "Error adding book";
+        });
+    }
+    
+    function deleteBook() {
+        const deleteBookId = document.getElementById("deleteBookId").value;
+		if(!deleteBookId){
+			alert("Please enter Book Id to delete");
+			return;
+		}
+        fetch(`/api/books/${deleteBookId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+            	 document.getElementById("deleteMessage").textContent = "Book deleted successfully";
+            	
+            }else{
+            	 document.getElementById("deleteMessage").textContent = "Book not found";
+            }
+        })
+        .catch(error => {
+            document.getElementById("deleteMessage").textContent = "Error deleting book";
+        });
+    }
+    
+    function updateBook() {
+        const updateBookId = document.getElementById("updateBookId").value;
+        const title = document.getElementById("updateTitle").value;
+        const price = document.getElementById("updatePrice").value;
+        const authorId = document.getElementById("updateAuthorId").value;
+
+        if (!updateBookId || !title || !price || !authorId) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        fetch(`/api/books/${updateBookId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title, price, authorId })
+        })
+        .then(response => {
+            if (response.ok) {
+                document.getElementById("updateMessage").textContent = "Book updated successfully";
+            } else {
+                document.getElementById("updateMessage").textContent = "Error updating book";
+            }
+        })
+        .catch(error => {
+            document.getElementById("updateMessage").textContent = "Error updating book";
+        });
+    }
+  
+    
+    
+        // Fetch all books
+        fetch('/api/books')
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('booklist');
+                data.forEach(book => {
+                    const li = document.createElement('li');
+                    li.textContent = `${book.title} having price ${book.price} with author ID ${book.authorId}`;
+                    list.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error fetching books data:', error));
+
+        // Fetch book by ID
+        function fetchBookById() {
+            const id = document.getElementById('bookId').value;
+            if (!id) {
+                alert("Please enter a book ID");
+                return;
+            }
+            fetch(`/api/books/${id}`)
+                .then(response => response.json())
+                .then(book => {
+                    const bookDetails = document.querySelector('#bookDetails');
+                    bookDetails.textContent = `Title: ${book.title} || Price: ${book.price} || Author ID: ${book.authorId}`;
+                })
+                .catch(error => console.error('Error fetching book:', error));
+        }
+
+
+       
+    </script>
+</body>
+</html>

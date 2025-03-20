@@ -1,0 +1,152 @@
+<DOCTYPE html>
+<html Lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport">
+<title>Orders</title>
+</head>
+<body>
+<h1>Orders List</h1>
+<ul id="OrderList"></ul>
+<label for="orderId">Enter Order Id :</label>
+<input type="number" id="orderId">
+<button onclick="fetchOrderById()">Search Order by Id</button>
+<h3>Order details</h3>
+<p id="orderDetails"></p>
+<h3>Place a new order !!</h3>
+<label for="bookId">Book Id: </label>
+<input type="number" id="name">	
+<label for="quantity">Quantity: </label>
+<input type="number" id="quantity">
+<label for="date">Date: </label>
+<input type="datetime-local" id="date">
+<button onclick="addOrder()">Place Order</button>
+<p id = "updateMessage"></p>
+<h3>Deleting Order</h3>
+<label for="orderId">Enter Order Id :</label>
+<input type="number" id="deleteorderId">
+<button onclick="deleteOrder()">Delete Order</button>
+<p id="deleteMessage"></p>
+<h3>Update Order</h3>
+<label for="updateorderId">Enter Order ID to update: </label>
+<input type="number" id="updateorderId"><br>
+<label for="updateBookId">Book Id: </label>
+<input type="number" id="updatequantity"><br>
+<label for="updateQuantity">Quantity: </label>
+<input type="number" id="updateQuantity"><br>
+<button onclick="updateOrder()">Update Order</button>
+<p id="updateMessage"></p>
+<script>
+		fetch('/api/orders')
+		.then(response => response.json())
+		.then(data => {
+			const list = document.getElementById('OrderList');
+			data.forEach(order => {
+				const li = document.createElement('li');
+				li.textContent = `Book ID: ${order.bookId} |  Order Quantity: ${order.quantity} `;
+				list.appendChild(li);
+			})
+		})
+	    .catch(error => console.error('Error fetching order data', error));
+
+		function fetchOrderById() {
+			const orderId = document.getElementById("orderId").value;
+			if(!orderId){
+				alert("please enter some order id");
+				return;
+			}
+			fetch(`/api/orders/${orderId}`)
+				.then(response => {
+					if(!response.ok) {
+						throw new Error("order not found");
+					}
+					return response.json();
+				})
+				.then(order => {
+					document.getElementById("orderDetails").textContent =
+						`Order id: ${order.id} | Book ID: ${order.bookId} | Quantity: ${order.quantity} | Order date: ${order.orderDate}`;
+				})
+				.catch(error => {
+					document.getElementById("orderDetails").textContent = "order not found";
+				})
+		}
+
+		function addOrder(){
+	        const bookID = document.getElementById("bookId").value;
+	        const quantity = document.getElementById("quantity").value;
+	        const date = document.getElementById("date").value;
+	        console.log("Placing order:", { bookID, quantity, date });
+	        fetch('/api/orders', {
+	            method: 'POST',
+	            headers: {
+	                'Content-Type': 'application/json'
+	            },
+	            body: JSON.stringify({ bookID, quantity, date })
+	        })
+	        .then(response => {
+	            if (!response.ok) {
+	                throw new Error('Failed to add order');
+	            }
+	            return response.text();
+	        })
+	        .then(author => {
+	            console.log("Order Placed successfully:", order);
+	            alert(`Order added successfully !!`);
+	        })
+	        .catch(error => {
+	        	document.getElementById("addOrderResponse").textContent = "Error adding order";
+	        });
+	    }
+		function deleteOrder() {
+	        const deleteOrderId = document.getElementById("deleteOrderId").value;
+			if(!deleteOrderId){
+				alert("Please enter order Id to delete");
+				return;
+			}
+	        fetch(`/api/orders/${deleteOrderId}`, {
+	            method: 'DELETE'
+	        })
+	        .then(response => {
+	            if (response.ok) {
+	            	 document.getElementById("deleteMessage").textContent = "order deleted successfully";
+	            }else{
+	            	 document.getElementById("deleteMessage").textContent = "order not found";
+	            }
+	        })
+	        .catch(error => {
+	            document.getElementById("deleteMessage").textContent = "Error deleting order";
+	        });
+	    }
+
+		function updateOrder() {
+	        const updateOrderId = document.getElementById("updateOrderId").value;
+	        const bookId = document.getElementById("updateBookId").value;
+	        const quantity = document.getElementById("updateQuantity").value;
+
+	        if (!updateOrderId || !bookId || !quantity ) {
+	            alert("Please fill in all fields");
+	            return;
+	        }
+	        fetch(`/api/orders/${updateOrderId}`, {
+	            method: 'PUT',
+	            headers: {
+	                'Content-Type': 'application/json'
+	            },
+	            body: JSON.stringify({updateOrderId, bookId, quantity })
+	        })
+	        .then(response => {
+	        	if (response.ok) {
+	            	 document.getElementById("updateMessage").textContent = "order updated successfully";
+	            }else{
+	            	 document.getElementById("updateMessage").textContent = "order not found";
+	            }
+	        })
+	        .catch(error => {
+	            document.getElementById("updateMessage").textContent = "Error updating order";
+	        });
+	    }
+
+
+</script>
+</body>
+</html>
